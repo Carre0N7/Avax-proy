@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
+import { MetricsSection } from "@/components/metrics-section"
 import { TechSection } from "@/components/tech-section"
 import { NFTShowcase } from "@/components/nft-showcase"
 import { DashboardMockup } from "@/components/dashboard-mockup"
@@ -10,6 +11,7 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
+      <MetricsSection />
       <NFTShowcase />
       <TechSection />
       <DashboardMockup />

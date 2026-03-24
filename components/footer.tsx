@@ -61,10 +61,8 @@ export function Footer() {
           {/* Logo & Badge */}
           <div className="flex flex-col items-center gap-4 md:items-start">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
-                AQ
-              </div>
-              <span className="text-lg font-bold tracking-tight">AVAX Quest</span>
+              <img src="/logo.png" alt="AVAX Logo" className="h-10 w-10 rounded-lg object-contain" />
+              <span className="text-lg font-bold tracking-tight">AVAX Battle</span>
             </div>
             <Badge 
               variant="outline" 
@@ -108,7 +106,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="mt-8 border-t border-border/50 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © 2026 AVAX Quest. All rights reserved.
+            © 2026 AVAX Battle. All rights reserved.
           </p>
         </div>
       </div>

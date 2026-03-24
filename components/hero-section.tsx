@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowRight } from "lucide-react"
 import { useWeb3 } from "@/hooks/useWeb3"
 
+
+
 export function HeroSection() {
   const { contract, address, connectWallet } = useWeb3();
   const [isMinting, setIsMinting] = useState(false);
+  const [introFinished, setIntroFinished] = useState(false);
 
   const handleMint = async () => {
     if (!address) {
@@ -31,13 +34,42 @@ export function HeroSection() {
     }
   };
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden pt-20">
-      {/* Background Gradient Effects */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/15 blur-2xl" />
+    <>
+      {/* Intro Video Overlay */}
+      <div 
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-1000 ${
+          introFinished ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+        onClick={() => setIntroFinished(true)}
+      >
+        <video 
+          src="/video.mp4" 
+          autoPlay 
+          muted 
+          playsInline 
+          onEnded={() => setIntroFinished(true)}
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute bottom-8 text-white/50 text-sm tracking-widest hover:text-white cursor-pointer transition-colors z-20">
+          Click window to skip
+        </div>
+        
+        {/* Fallback pattern if video isn't loaded or ready */}
+        <div className="-z-10 absolute inset-0 flex flex-col items-center justify-center bg-background p-6 text-center text-sm text-muted-foreground">
+          <span className="mb-2 font-medium">Video Placeholder</span>
+          <span>Para que tu video aparezca aquí, renómbralo como <strong>video.mp4</strong> y ponlo en la carpeta <strong>public</strong> de tu proyecto.</span>
+        </div>
       </div>
+
+      <section className={`relative flex min-h-screen items-center justify-center overflow-hidden pt-20 transition-all duration-1000 ${
+        introFinished ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}>
+        {/* Background Gradient Effects */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/15 blur-2xl" />
+        </div>
 
       {/* Grid Pattern Overlay */}
       <div 
@@ -49,6 +81,7 @@ export function HeroSection() {
       />
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
+
         {/* Badge */}
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
           <Sparkles className="h-4 w-4" />
@@ -85,21 +118,9 @@ export function HeroSection() {
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 gap-8 border-t border-border/50 pt-8 md:grid-cols-4">
-          {[
-            { value: "10K+", label: "Heroes Minted" },
-            { value: "50K+", label: "Battles Fought" },
-            { value: "<0.01", label: "Avg Gas Fee" },
-            { value: "500ms", label: "Finality" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl font-bold text-primary md:text-3xl">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+
       </div>
     </section>
+    </>
   )
 }

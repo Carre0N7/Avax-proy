@@ -29,9 +29,7 @@ export function DashboardMockup() {
           {/* Dashboard Header */}
           <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground text-sm">
-                AQ
-              </div>
+              <img src="/logo.png" alt="AVAX Logo" className="h-8 w-8 rounded-lg object-contain" />
               <span className="font-semibold">Player Dashboard</span>
             </div>
             <div className="flex items-center gap-2">
@@ -85,9 +83,9 @@ export function DashboardMockup() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {[
-                    { result: "Victory", opponent: "vs DarkMage99", reward: "+15 $AQ", win: true },
-                    { result: "Victory", opponent: "vs ChainLord", reward: "+12 $AQ", win: true },
-                    { result: "Defeat", opponent: "vs SubnetKing", reward: "-5 $AQ", win: false },
+                    { result: "Victory", opponent: "vs DarkMage99", reward: "+15 $AVAX", win: true },
+                    { result: "Victory", opponent: "vs ChainLord", reward: "+12 $AVAX", win: true },
+                    { result: "Defeat", opponent: "vs SubnetKing", reward: "-5 $AVAX", win: false },
                   ].map((battle, i) => (
                     <div 
                       key={i}
@@ -123,18 +121,18 @@ export function DashboardMockup() {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-6 rounded-xl bg-gradient-to-br from-primary/20 to-transparent p-6">
-                    <div className="text-sm text-muted-foreground">$AQ Balance</div>
+                    <div className="text-sm text-muted-foreground">$AVAX Balance</div>
                     <div className="text-3xl font-bold text-primary">2,450.00</div>
                     <div className="mt-1 text-xs text-muted-foreground">≈ $1,225 USD</div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Staked</span>
-                      <span className="font-medium">1,000 $AQ</span>
+                      <span className="font-medium">1,000 $AVAX</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Rewards</span>
-                      <span className="font-medium text-green-400">+45 $AQ</span>
+                      <span className="font-medium text-green-400">+45 $AVAX</span>
                     </div>
                   </div>
                 </CardContent>
