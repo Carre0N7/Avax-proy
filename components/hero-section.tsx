@@ -157,14 +157,6 @@ export function HeroSection() {
               </Button>
             </DialogContent>
           </Dialog>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="gap-2 border-border/50 px-8 text-lg hover:border-primary/50 hover:bg-primary/10"
-          >
-            Explore Fuji Testnet Beta
-            <ArrowRight className="h-5 w-5" />
-          </Button>
         </div>
 
 
