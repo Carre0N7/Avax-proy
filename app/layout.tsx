@@ -7,7 +7,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AVAX Quest | RPG Powered by Avalanche L1 Subnet',
+  title: 'AVAX BATTLE | RPG Powered by Avalanche L1 Subnet',
   description: 'Own your assets, rule the arena. Battle in a decentralized world with instant finality and near-zero gas fees.',
   generator: 'v0.app',
   icons: {
