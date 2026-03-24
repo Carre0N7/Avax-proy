@@ -172,34 +172,6 @@ export function NFTShowcase() {
                 let opacity = 0;
                 let zIndex = 0;
                 let filter = 'blur(10px) brightness(0.5)';
-        {/* NFT Cards Grid */}
-        {address && (
-          <div className="grid gap-6 md:grid-cols-3">
-          {myHeroes.map((hero) => {
-            const theme = visualThemes[hero.id % visualThemes.length]
-            const Icon = theme.icon
-            return (
-              <Card 
-                key={hero.id}
-                className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
-              >
-                {/* Card Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${theme.color} opacity-0 transition-opacity group-hover:opacity-100`} />
-                
-                <CardHeader className="relative flex-row items-center justify-between pb-2">
-                  <Badge variant="outline" className={`w-fit ${theme.rarityColor}`}>
-                    {theme.rarity}
-                  </Badge>
-                  <Badge variant="secondary" className="w-fit border-border/50 bg-primary/20 text-primary">
-                    Lvl {hero.level}
-                  </Badge>
-                </CardHeader>
-
-                <CardContent className="relative">
-                  {/* Character Icon/Placeholder */}
-                  <div className="mb-6 flex aspect-square items-center justify-center rounded-xl border border-border/50 bg-muted/50">
-                    <Icon className={`h-24 w-24 ${theme.accentColor} opacity-80`} />
-                  </div>
 
                 if (isCenter) {
                   transform = 'scale(1.0) translateX(0) translateZ(80px)';
@@ -342,26 +314,6 @@ export function NFTShowcase() {
               )
             })}
           </div>
-                <CardFooter className="relative">
-                  <Button 
-                    onClick={() => trainHero(hero.id)}
-                    disabled={trainingId === hero.id}
-                    className="w-full gap-2 transition-all bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    {trainingId === hero.id ? (
-                      <span className="animate-pulse">Entrenando... (Espera)</span>
-                    ) : (
-                      <>
-                        Entrenar Héroe (+Stats)
-                        <Activity className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            )
-          })}
-        </div>
         )}
       </div>
     </section>
