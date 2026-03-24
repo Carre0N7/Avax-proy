@@ -78,6 +78,10 @@ export function NFTShowcase() {
   };
 
   useEffect(() => {
+    if (!address || !contract) {
+      setMyHeroes([]);
+      return;
+    }
     fetchHeroes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, contract, isWrongNetwork]);
@@ -125,7 +129,8 @@ export function NFTShowcase() {
         </div>
 
         {/* NFT Cards Grid */}
-        <div className="grid gap-6 md:grid-cols-3">
+        {address && (
+          <div className="grid gap-6 md:grid-cols-3">
           {myHeroes.map((hero) => {
             const theme = visualThemes[hero.id % visualThemes.length]
             const Icon = theme.icon
@@ -195,6 +200,7 @@ export function NFTShowcase() {
             )
           })}
         </div>
+        )}
       </div>
     </section>
   )

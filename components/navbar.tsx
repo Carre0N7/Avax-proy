@@ -2,13 +2,19 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Wallet } from "lucide-react"
+import { Menu, X, Wallet, LogOut } from "lucide-react"
 import { useState } from "react"
 import { useWeb3 } from "@/hooks/useWeb3"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { address, connectWallet, isWrongNetwork, switchToFuji } = useWeb3()
+  const { address, connectWallet, disconnectWallet, isWrongNetwork, switchToFuji } = useWeb3()
 
   const navLinks = [
     { name: "My Inventory", href: "#inventory" },
@@ -48,10 +54,20 @@ export function Navbar() {
               Switch to Fuji
             </Button>
           ) : address ? (
-            <Button variant="outline" className="gap-2 font-mono">
-              <Wallet className="h-4 w-4" />
-              {address.slice(0, 6)}...{address.slice(-4)}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2 font-mono">
+                  <Wallet className="h-4 w-4" />
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={disconnectWallet} className="text-destructive cursor-pointer font-medium">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Disconnect Wallet</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button onClick={connectWallet} className="gap-2 bg-primary hover:bg-primary/90">
               <Wallet className="h-4 w-4" />
@@ -93,9 +109,9 @@ export function Navbar() {
                 Switch to Fuji
               </Button>
             ) : address ? (
-              <Button variant="outline" className="mt-2 w-full gap-2 font-mono">
-                <Wallet className="h-4 w-4" />
-                {address.slice(0, 6)}...{address.slice(-4)}
+              <Button onClick={() => { disconnectWallet(); setMobileMenuOpen(false); }} variant="outline" className="mt-2 w-full gap-2 font-mono text-destructive hover:text-destructive hover:bg-destructive/10">
+                <LogOut className="h-4 w-4" />
+                Disconnect ({address.slice(0, 6)}...{address.slice(-4)})
               </Button>
             ) : (
               <Button onClick={() => { connectWallet(); setMobileMenuOpen(false); }} className="mt-2 w-full gap-2 bg-primary hover:bg-primary/90">
