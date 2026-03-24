@@ -1,15 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { BrowserProvider, JsonRpcProvider, Contract } from 'ethers';
 
 const FUJI_CHAIN_ID = 43113;
 const FUJI_RPC_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 
-// Dirección del Smart Contract desplegado en Avalanche Fuji
-export const CONTRACT_ADDRESS = "0xd5f18A720E51C12baBA546A68485e8f14f69cE25"; // !<- PEGAR ADDRESS AQUÍ
+export const CONTRACT_ADDRESS = "0xd5f18A720E51C12baBA546A68485e8f14f69cE25";
 
-// ABI de nuestro AvaxQuest.sol
 export const CONTRACT_ABI = [
   "function mintHero() external",
   "function entrenarHeroe(uint256 tokenId) external",
@@ -20,16 +18,35 @@ export const CONTRACT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 
-export function useWeb3() {
+interface Web3ContextType {
+  address: string | null;
+  isWrongNetwork: boolean;
+  provider: BrowserProvider | JsonRpcProvider | null;
+  contract: Contract | null;
+  connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
+  switchToFuji: () => Promise<void>;
+}
+
+const Web3Context = createContext<Web3ContextType | undefined>(undefined);
+
+export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   const [provider, setProvider] = useState<BrowserProvider | JsonRpcProvider | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
 
-  // Intenta recuperar la wallet automáticamente; si no funciona, usa el Fallback.
   useEffect(() => {
     const initWeb3 = async () => {
       const providerObj = (window as any).avalanche || (window as any).ethereum;
+      
+      if (localStorage.getItem('walletDisconnected') === 'true') {
+        const defaultProvider = new JsonRpcProvider(FUJI_RPC_URL);
+        setProvider(defaultProvider);
+        setContract(new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, defaultProvider));
+        return;
+      }
+
       if (providerObj) {
         try {
           const accounts = await providerObj.request({ method: 'eth_accounts' });
@@ -71,29 +88,22 @@ export function useWeb3() {
     try {
       await providerObj.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0xa869' }], // 43113 en hexadecimal
+        params: [{ chainId: '0xa869' }],
       });
       setIsWrongNetwork(false);
     } catch (switchError: unknown) {
       const err = switchError as { code: number };
-      // El error 4902 significa que la red no ha sido agregada a la wallet aún
       if (err.code === 4902) {
         try {
           await providerObj.request({
             method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: '0xa869',
-                chainName: 'Avalanche Fuji Testnet',
-                rpcUrls: [FUJI_RPC_URL],
-                nativeCurrency: {
-                  name: 'AVAX',
-                  symbol: 'AVAX',
-                  decimals: 18,
-                },
-                blockExplorerUrls: ['https://testnet.snowtrace.io/'],
-              },
-            ],
+            params: [{
+              chainId: '0xa869',
+              chainName: 'Avalanche Fuji Testnet',
+              rpcUrls: [FUJI_RPC_URL],
+              nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+              blockExplorerUrls: ['https://testnet.snowtrace.io/'],
+            }],
           });
           setIsWrongNetwork(false);
         } catch (addError) {
@@ -108,14 +118,22 @@ export function useWeb3() {
 
     if (providerObj) {
       try {
+        localStorage.removeItem('walletDisconnected');
+
         const browserProvider = new BrowserProvider(providerObj);
-        await browserProvider.send("eth_requestAccounts", []); // Pide permisos de conexión
+        
+        await providerObj.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
+
+        await browserProvider.send("eth_requestAccounts", []);
         const signer = await browserProvider.getSigner();
         const userAddress = await signer.getAddress();
 
         setAddress(userAddress);
         setProvider(browserProvider);
-        setContract(new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer)); // Contrato habilitado para escribir
+        setContract(new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer));
 
         await checkNetwork(browserProvider);
       } catch (err) {
@@ -126,7 +144,13 @@ export function useWeb3() {
     }
   };
 
-  // Re-evaluar cuando el usuario cambia de red o cuenta desde su wallet directamente
+  const disconnectWallet = () => {
+    setAddress(null);
+    setProvider(null);
+    setContract(null);
+    localStorage.setItem('walletDisconnected', 'true');
+  };
+
   useEffect(() => {
     const providerObj = (window as any).avalanche || (window as any).ethereum;
 
@@ -134,9 +158,12 @@ export function useWeb3() {
       const handleChainChanged = () => window.location.reload();
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length > 0) {
-          setAddress(accounts[0]);
+          if (localStorage.getItem('walletDisconnected') !== 'true') {
+            setAddress(accounts[0]);
+          }
         } else {
           setAddress(null);
+          localStorage.setItem('walletDisconnected', 'true');
         }
       };
 
@@ -150,5 +177,17 @@ export function useWeb3() {
     }
   }, []);
 
-  return { address, isWrongNetwork, connectWallet, switchToFuji, provider, contract };
+  return (
+    <Web3Context.Provider value={{ address, isWrongNetwork, provider, contract, connectWallet, disconnectWallet, switchToFuji }}>
+      {children}
+    </Web3Context.Provider>
+  );
+}
+
+export function useWeb3() {
+  const context = useContext(Web3Context);
+  if (context === undefined) {
+    throw new Error('useWeb3 must be used within a Web3Provider');
+  }
+  return context;
 }
