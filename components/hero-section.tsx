@@ -2,14 +2,15 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Sparkles, ArrowRight } from "lucide-react"
+import { Sparkles, ArrowRight, Zap, Flame } from "lucide-react"
 import { useWeb3 } from "@/hooks/useWeb3"
+import { parseEther } from "ethers"
 
 export function HeroSection() {
   const { contract, address, connectWallet } = useWeb3();
   const [isMinting, setIsMinting] = useState(false);
 
-  const handleMint = async () => {
+  const handleMint = async (isPremium: boolean) => {
     if (!address) {
       await connectWallet();
       return;
@@ -20,12 +21,33 @@ export function HeroSection() {
     }
     try {
       setIsMinting(true);
-      const tx = await contract.mintHero();
+      const value = isPremium ? parseEther("0.05") : parseEther("0.01");
+      const tx = await contract.mintHero({ value });
       await tx.wait();
-      alert("¡Héroe minteado con éxito en la blockchain de Fuji!");
-    } catch (err) {
+      alert("¡Héroe invocado con éxito de la blockchain de Fuji!");
+    } catch (err: any) {
       console.error(err);
-      alert("Error al mintear. Revisa la consola o rechazo de billetera.");
+      if (err.reason && err.reason.includes("already own all")) {
+         alert("¡Ya posees los 8 héroes únicos! No puedes invocar más.");
+      } else {
+         alert("Error al mintear. Verifica si tienes suficiente AVAX o si rechazaste la transacción.");
+      }
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  const handleDevMint = async () => {
+    if (!address || !contract) return;
+    try {
+      setIsMinting(true);
+      // Sylas (0), Ignis (1), Aethelgard (2), Thalassa (4)
+      const tx = await contract.adminMintSpecific(address, [0, 1, 2, 4]);
+      await tx.wait();
+      alert("¡Dev Mint exitoso! Sylas, Ignis, Aethelgard y Thalassa añadidos a tu billetera.");
+    } catch (err: any) {
+      console.error(err);
+      alert("Error en Dev Mint. Asegúrate de ser el Owner del contrato.");
     } finally {
       setIsMinting(false);
     }
@@ -70,20 +92,33 @@ export function HeroSection() {
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button onClick={handleMint} disabled={isMinting} size="lg" className="gap-2 bg-primary px-8 text-lg hover:bg-primary/90">
-            <Sparkles className="h-5 w-5" />
-            {isMinting ? "Minteando y firmando..." : "Mint Your First Hero NFT"}
+        <div className="flex flex-col items-center justify-center gap-4 mt-8 sm:flex-row">
+          <Button 
+            onClick={() => handleMint(false)} 
+            disabled={isMinting} 
+            size="lg" 
+            className="gap-2 bg-slate-800 text-white hover:bg-slate-700 px-8 py-8 text-lg border border-slate-600 transition-all hover:scale-105"
+          >
+            <Zap className="h-6 w-6 text-sky-400" />
+            <div className="flex flex-col items-start text-left">
+              <span>Standard Summon</span>
+              <span className="text-xs text-slate-400 font-normal">Normal Rates • 0.01 AVAX</span>
+            </div>
           </Button>
           <Button 
+            onClick={() => handleMint(true)} 
+            disabled={isMinting} 
             size="lg" 
-            variant="outline" 
-            className="gap-2 border-border/50 px-8 text-lg hover:border-primary/50 hover:bg-primary/10"
+            className="gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 px-8 py-8 text-lg shadow-[0_0_30px_-5px_rgba(245,158,11,0.6)] border border-amber-400/50 transition-all hover:scale-105"
           >
-            Explore Fuji Testnet Beta
-            <ArrowRight className="h-5 w-5" />
+            <Flame className="h-6 w-6 text-yellow-200" />
+            <div className="flex flex-col items-start text-left">
+              <span>Premium Summon</span>
+              <span className="text-xs text-amber-200 font-normal">High Mythic Rate • 0.05 AVAX</span>
+            </div>
           </Button>
         </div>
+        {isMinting && <p className="mt-6 text-sm text-primary animate-pulse font-bold tracking-widest uppercase">Escribiendo invocación en el contrato inteligente...</p>}
 
         {/* Stats */}
         <div className="mt-16 grid grid-cols-2 gap-8 border-t border-border/50 pt-8 md:grid-cols-4">
@@ -99,6 +134,15 @@ export function HeroSection() {
             </div>
           ))}
         </div>
+
+        {/* Dev Tools */}
+        {address && (
+          <div className="mt-12 opacity-50 hover:opacity-100 transition-opacity">
+            <Button onClick={handleDevMint} disabled={isMinting} variant="outline" size="sm" className="text-xs border-dashed border-red-500/50 text-red-400 hover:bg-red-500/10">
+              🛠️ [DEV] Force Mint: Sylas, Ignis, Aethelgard, Thalassa
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   )
