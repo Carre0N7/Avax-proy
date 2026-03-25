@@ -142,6 +142,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
         setContract(new Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer));
 
         await checkNetwork(browserProvider);
+        triggerRefresh();
       } catch (err) {
         console.error("Error al conectar la wallet:", err);
       }

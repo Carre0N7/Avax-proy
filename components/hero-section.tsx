@@ -38,12 +38,12 @@ export function HeroSection() {
       const tx = await contract.mintHero(heroName, Number(heroClass), { value: parseEther("0.01") });
       await tx.wait();
       triggerRefresh();
-      alert("¡Héroe minteado con éxito en la blockchain de Fuji!");
+      alert("Hero successfully forged in Fuji Testnet!");
       setIsMintDialogOpen(false);
       setHeroName("");
     } catch (err) {
       console.error(err);
-      alert("Error al mintear. Revisa si tienes suficiente saldo de prueba o si rechazaste la transacción.");
+      alert("Error minting. Check if you have sufficient test AVAX balance or if you rejected the transaction.");
     } finally {
       setIsMinting(false);
     }
@@ -130,30 +130,30 @@ export function HeroSection() {
               <DialogHeader>
                 <DialogTitle>Forge a New Hero</DialogTitle>
                 <DialogDescription>
-                  Nombra a tu NFT y elige su tipo de armadura. El minteo cuesta 0.01 AVAX para ser inscrito en la historia.
+                  Name your NFT and choose its combat class. Minting costs 0.01 AVAX to be written into the immutable ledger.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nombre del Héroe</Label>
-                  <Input id="name" value={heroName} onChange={(e) => setHeroName(e.target.value)} placeholder="Ej: Guerrero Legendario" />
+                  <Label htmlFor="name">Hero Name</Label>
+                  <Input id="name" value={heroName} onChange={(e) => setHeroName(e.target.value)} placeholder="Ex: Legendary Warrior" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="class">Clase Base</Label>
+                  <Label htmlFor="class">Combat Class</Label>
                   <Select value={heroClass} onValueChange={setHeroClass}>
                     <SelectTrigger id="class">
-                      <SelectValue placeholder="Selecciona una clase" />
+                      <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Guerrero (+DEF)</SelectItem>
-                      <SelectItem value="1">Arquero (Equilibrado)</SelectItem>
-                      <SelectItem value="2">Mago (+ATQ)</SelectItem>
+                      <SelectItem value="0">Warrior (+DEF)</SelectItem>
+                      <SelectItem value="1">Archer (Balanced)</SelectItem>
+                      <SelectItem value="2">Mage (+ATQ)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <Button disabled={isMinting || !heroName} onClick={handleMint} className="w-full">
-                {isMinting ? "Firmando Contrato Trascendental..." : "Mintear y Descubrir Rareza (0.01 AVAX)"}
+                {isMinting ? "Signing Ancient Contract..." : "Mint and Reveal Rarity (0.01 AVAX)"}
               </Button>
             </DialogContent>
           </Dialog>
