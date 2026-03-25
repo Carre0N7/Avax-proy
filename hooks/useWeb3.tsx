@@ -9,7 +9,7 @@ const FUJI_RPC_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 export const CONTRACT_ADDRESS = "0xd5f18A720E51C12baBA546A68485e8f14f69cE25";
 
 export const CONTRACT_ABI = [
-  "function mintHero() external",
+  "function mintHero(string name, uint256 heroClass) public payable",
   "function entrenarHeroe(uint256 tokenId) external",
   "function ownerOf(uint256 tokenId) view returns (address)",
   "function heroes(uint256) view returns (uint256 level, uint256 attack, uint256 defense)",
