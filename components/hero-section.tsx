@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -26,11 +26,11 @@ export function HeroSection() {
       return;
     }
     if (!contract) {
-      alert("Contract not loaded. Please verify the network.");
+      alert("Contrato no cargado. Verifica la red.");
       return;
     }
     if (!heroName) {
-       alert("You must name your hero");
+       alert("Debes ponerle nombre a tu héroe");
        return;
     }
     try {
@@ -38,12 +38,12 @@ export function HeroSection() {
       const tx = await contract.mintHero(heroName, Number(heroClass), { value: parseEther("0.01") });
       await tx.wait();
       triggerRefresh();
-      alert("Hero minted successfully on the Fuji blockchain!");
+      alert("¡Héroe minteado con éxito en la blockchain de Fuji!");
       setIsMintDialogOpen(false);
       setHeroName("");
     } catch (err) {
       console.error(err);
-      alert("Error minting. Check if you have enough test balance or if you rejected the transaction.");
+      alert("Error al mintear. Revisa si tienes suficiente saldo de prueba o si rechazaste la transacción.");
     } finally {
       setIsMinting(false);
     }
@@ -52,7 +52,9 @@ export function HeroSection() {
     <>
       {/* Intro Video Overlay */}
       <div 
-        className={ixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-1000 }
+        className={`fixed inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-1000 ${
+          introFinished ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
         onClick={() => setIntroFinished(true)}
       >
         <video 
@@ -70,11 +72,13 @@ export function HeroSection() {
         {/* Fallback pattern if video isn't loaded or ready */}
         <div className="-z-10 absolute inset-0 flex flex-col items-center justify-center bg-background p-6 text-center text-sm text-muted-foreground">
           <span className="mb-2 font-medium">Video Placeholder</span>
-          <span>For your video to appear here, rename it to <strong>video.mp4</strong> and place it in the <strong>public</strong> folder of your project.</span>
+          <span>Para que tu video aparezca aquí, renómbralo como <strong>video.mp4</strong> y ponlo en la carpeta <strong>public</strong> de tu proyecto.</span>
         </div>
       </div>
 
-      <section className={elative flex min-h-screen items-center justify-center overflow-hidden pt-20 transition-all duration-1000 }>
+      <section className={`relative flex min-h-screen items-center justify-center overflow-hidden pt-20 transition-all duration-1000 ${
+        introFinished ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}>
         {/* Background Gradient Effects */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
@@ -86,7 +90,7 @@ export function HeroSection() {
       <div 
         className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
           backgroundSize: '60px 60px'
         }}
       />
@@ -126,30 +130,30 @@ export function HeroSection() {
               <DialogHeader>
                 <DialogTitle>Forge a New Hero</DialogTitle>
                 <DialogDescription>
-                  Name your NFT and choose its base class. Minting costs 0.01 AVAX to be inscribed in history.
+                  Nombra a tu NFT y elige su tipo de armadura. El minteo cuesta 0.01 AVAX para ser inscrito en la historia.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Hero Name</Label>
-                  <Input id="name" value={heroName} onChange={(e) => setHeroName(e.target.value)} placeholder="Ex: Legendary Warrior" />
+                  <Label htmlFor="name">Nombre del Héroe</Label>
+                  <Input id="name" value={heroName} onChange={(e) => setHeroName(e.target.value)} placeholder="Ej: Guerrero Legendario" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="class">Base Class</Label>
+                  <Label htmlFor="class">Clase Base</Label>
                   <Select value={heroClass} onValueChange={setHeroClass}>
                     <SelectTrigger id="class">
-                      <SelectValue placeholder="Select a class" />
+                      <SelectValue placeholder="Selecciona una clase" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Warrior (+DEF)</SelectItem>
-                      <SelectItem value="1">Archer (Balanced)</SelectItem>
-                      <SelectItem value="2">Mage (+ATK)</SelectItem>
+                      <SelectItem value="0">Guerrero (+DEF)</SelectItem>
+                      <SelectItem value="1">Arquero (Equilibrado)</SelectItem>
+                      <SelectItem value="2">Mago (+ATQ)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <Button disabled={isMinting || !heroName} onClick={handleMint} className="w-full">
-                {isMinting ? "Signing Transcendental Contract..." : "Mint and Discover Rarity (0.01 AVAX)"}
+                {isMinting ? "Firmando Contrato Trascendental..." : "Mintear y Descubrir Rareza (0.01 AVAX)"}
               </Button>
             </DialogContent>
           </Dialog>

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useInView } from "framer-motion"
@@ -46,7 +46,7 @@ function AnimatedStat({ value, label, delay }: { value: string; label: string; d
     return () => clearTimeout(timeout);
   }, [endNum, isInView, delay]);
 
-  const displayValue = hasAnimated ? value : ${prefix};
+  const displayValue = hasAnimated ? value : `${prefix}${count.toFixed(decimals)}${suffix}`;
 
   return (
     <motion.div 
@@ -104,7 +104,7 @@ export function MetricsSection() {
         {/* Fallback if video isn't loaded */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-sm text-white/40">
           <span className="mb-2 font-medium">Metrics Video Placeholder</span>
-          <span>Save your new video as <strong>metrics-bg.mp4</strong> in the <strong>public</strong> folder.</span>
+          <span>Guarda tu nuevo video como <strong>metrics-bg.mp4</strong> en la carpeta <strong>public</strong>.</span>
         </div>
       </motion.div>
 
