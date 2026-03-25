@@ -6,15 +6,16 @@ import { BrowserProvider, JsonRpcProvider, Contract } from 'ethers';
 const FUJI_CHAIN_ID = 43113;
 const FUJI_RPC_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 
-export const CONTRACT_ADDRESS = "0xd5f18A720E51C12baBA546A68485e8f14f69cE25";
+export const CONTRACT_ADDRESS = "0x420b6D22e286E27A53F6Ca2D4fA2C3093c86F0Ab";
 
 export const CONTRACT_ABI = [
-  "function mintHero(string name, uint256 heroClass) public payable",
+  "function mintHero(string _name, uint8 _class) external payable",
   "function entrenarHeroe(uint256 tokenId) external",
   "function ownerOf(uint256 tokenId) view returns (address)",
-  "function heroes(uint256) view returns (uint256 level, uint256 attack, uint256 defense)",
+  "function getHeroStats(uint256 tokenId) view returns (tuple(string name, uint8 heroClass, uint8 rarity, uint256 exp, uint256 level, uint256 attack, uint256 defense, uint256 lastTrainedAt))",
   "function tokenURI(uint256 tokenId) view returns (string)",
   "function balanceOf(address owner) view returns (uint256)",
+  "function withdrawBalance() external",
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 
@@ -38,8 +39,8 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [provider, setProvider] = useState<BrowserProvider | JsonRpcProvider | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
+
+  const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
 
   useEffect(() => {
     const initWeb3 = async () => {
