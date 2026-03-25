@@ -4,20 +4,20 @@ pragma solidity ^0.8.24;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+// MVP del contrato inteligente para AVAX Quest utilizando Foundry.
 contract AvaxQuest is ERC721, Ownable {
     uint256 private _nextTokenId;
 
     uint256 public constant MAX_SUPPLY = 5000;
-    uint256 public constant MINT_COST_STANDARD = 0.01 ether;
-    uint256 public constant MINT_COST_PREMIUM = 0.05 ether;
-    uint256 public constant TRAIN_COOLDOWN = 1 minutes; // Cambiar a 12h en prod
+    uint256 public constant MINT_COST = 0.01 ether;
+    uint256 public constant TRAIN_COOLDOWN = 1 minutes; // Cambiar a 12 hours para produccion
 
-    enum HeroType { Sylas, Ignis, Aethelgard, Noctis, Thalassa, Voltz, Krag, Zyra }
+    enum HeroClass { Guerrero, Arquero, Mago }
     enum HeroRarity { Comun, Raro, Especial, Epico, Legendario, Mitico }
 
     struct HeroStats {
         string name;
-        HeroType heroType;
+        HeroClass heroClass;
         HeroRarity rarity;
         uint256 exp;
         uint256 level;
@@ -27,81 +27,67 @@ contract AvaxQuest is ERC721, Ownable {
     }
 
     mapping(uint256 => HeroStats) public heroes;
-    
-    // Bitmask for checking which heroes a user has minted (8 bits used: 11111111 = 255)
-    mapping(address => uint8) public userMintMask;
 
     constructor() ERC721("AVAX Quest Hero", "AQH") Ownable(msg.sender) {}
 
-    function getWeight(uint8 heroId, bool isPremium) internal pure returns (uint256) {
-        if (heroId == 6) { // Rare
-            return isPremium ? 10 : 100;
-        } else if (heroId == 4 || heroId == 5) { // Epic
-            return isPremium ? 30 : 50;
-        } else if (heroId == 2 || heroId == 3) { // Legendary
-            return isPremium ? 80 : 20;
-        } else { // Mythic (0, 1, 7)
-            return isPremium ? 50 : 5;
-        }
-    }
-
     /**
-     * @dev Gacha system para mintear 8 héroes únicos sin repetidos.
+     * @dev Mintea un nuevo heroe asignandole stats basicas, rareza aleatoria y nombre.
      */
-    function mintHero() external payable {
-        require(_nextTokenId < MAX_SUPPLY, "Max supply reached");
-        require(msg.value >= MINT_COST_STANDARD, "Incorrect AVAX value");
-        require(userMintMask[msg.sender] != 255, "You already own all 8 heroes");
-
-        bool isPremium = (msg.value >= MINT_COST_PREMIUM);
-        
-        uint8[] memory available = new uint8[](8);
-        uint256[] memory weights = new uint256[](8);
-        uint256 count = 0;
-        uint256 totalWeight = 0;
-
-        for(uint8 i = 0; i < 8; i++) {
-            if ((userMintMask[msg.sender] & (1 << i)) == 0) {
-                available[count] = i;
-                uint256 w = getWeight(i, isPremium);
-                weights[count] = w;
-                totalWeight += w;
-                count++;
-            }
-        }
-
-        uint256 random = (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, _nextTokenId))) % totalWeight);
-        uint256 runningTotal = 0;
-        uint8 selectedId = 0;
-
-        for(uint256 i = 0; i < count; i++) {
-            runningTotal += weights[i];
-            if (random < runningTotal) {
-                selectedId = available[i];
-                break;
-            }
-        }
-
-        userMintMask[msg.sender] |= (1 << selectedId);
-
-        string[8] memory heroNames = ["Sylas", "Ignis", "Aethelgard", "Noctis", "Thalassa", "Voltz", "Krag", "Zyra"];
-        HeroRarity[8] memory heroRarities = [
-            HeroRarity.Mitico, HeroRarity.Mitico, HeroRarity.Legendario, HeroRarity.Legendario, 
-            HeroRarity.Epico, HeroRarity.Epico, HeroRarity.Raro, HeroRarity.Mitico
-        ];
-        uint256[8] memory baseAtk = [uint256(15), 35, 20, 30, 25, 25, 15, 40];
-        uint256[8] memory baseDef = [uint256(35), 15, 25, 10, 20, 15, 30,  5];
+    function mintHero(string memory _name, HeroClass _class) external payable {
+        require(_nextTokenId < MAX_SUPPLY, "Se ha alcanzado el suministro maximo");
+        require(msg.value >= MINT_COST, "Ether insuficiente para mintear");
 
         uint256 tokenId = _nextTokenId++;
+        
+        // Pseudo-random generation for rarity (1-100)
+        uint256 randomWord = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, tokenId)));
+        uint256 chance = (randomWord % 100) + 1;
+        
+        HeroRarity rarity;
+        uint256 bonusStats = 0;
+
+        if (chance <= 50) {
+            rarity = HeroRarity.Comun;
+            bonusStats = 0;
+        } else if (chance <= 75) {
+            rarity = HeroRarity.Raro;
+            bonusStats = 5;
+        } else if (chance <= 88) {
+            rarity = HeroRarity.Especial;
+            bonusStats = 12;
+        } else if (chance <= 95) {
+            rarity = HeroRarity.Epico;
+            bonusStats = 20;
+        } else if (chance <= 99) {
+            rarity = HeroRarity.Legendario;
+            bonusStats = 30;
+        } else {
+            rarity = HeroRarity.Mitico;
+            bonusStats = 50;
+        }
+
+        uint256 baseAtk;
+        uint256 baseDef;
+
+        if (_class == HeroClass.Guerrero) {
+            baseAtk = 10;
+            baseDef = 20;
+        } else if (_class == HeroClass.Arquero) {
+            baseAtk = 15;
+            baseDef = 10;
+        } else { // Mago
+            baseAtk = 20;
+            baseDef = 5;
+        }
 
         heroes[tokenId] = HeroStats({
-            name: heroNames[selectedId],
-            heroType: HeroType(selectedId),
-            rarity: heroRarities[selectedId],
+            name: _name,
+            heroClass: _class,
+            rarity: rarity,
             exp: 0,
             level: 1,
-            attack: baseAtk[selectedId],
-            defense: baseDef[selectedId],
+            attack: baseAtk + bonusStats,
+            defense: baseDef + bonusStats,
             lastTrainedAt: 0
         });
 
@@ -109,61 +95,49 @@ contract AvaxQuest is ERC721, Ownable {
     }
 
     /**
-     * @dev Entrenar otorga 50XP y sube de nivel cada 100XP. Se especializa segun el tipo de héroe.
+     * @dev Entrena al heroe respetando el cooldown. Otorga 50XP y sube de nivel cada 100XP.
      */
     function entrenarHeroe(uint256 tokenId) external {
-        require(ownerOf(tokenId) == msg.sender, "Not the owner");
-        require(block.timestamp >= heroes[tokenId].lastTrainedAt + TRAIN_COOLDOWN, "Hero is resting");
+        require(ownerOf(tokenId) == msg.sender, "No eres el dueno del heroe");
+        require(block.timestamp >= heroes[tokenId].lastTrainedAt + TRAIN_COOLDOWN, "El heroe esta cansado. Espera el cooldown.");
 
         heroes[tokenId].lastTrainedAt = block.timestamp;
         heroes[tokenId].exp += 50;
 
+        // Si la experiencia llega a 100 o mas, sube de nivel
         if (heroes[tokenId].exp >= 100) {
-            heroes[tokenId].exp -= 100;
+            heroes[tokenId].exp -= 100; // Resta 100 en lugar de volver a cero para no perder sobrantes
             heroes[tokenId].level += 1;
             
-            // Subida generica pero adaptable por el ID
-            uint8 hId = uint8(heroes[tokenId].heroType);
-            if (hId == 0 || hId == 6) { // Tanks
+            // Incremento de stats especializado por cada nivel ganado
+            if (heroes[tokenId].heroClass == HeroClass.Guerrero) {
                 heroes[tokenId].attack += 2;
                 heroes[tokenId].defense += 5;
-            } else if (hId == 2 || hId == 4 || hId == 5) { // Balanced
+            } else if (heroes[tokenId].heroClass == HeroClass.Arquero) {
                 heroes[tokenId].attack += 4;
-                heroes[tokenId].defense += 4;
-            } else { // Attackers (1, 3, 7)
-                heroes[tokenId].attack += 7;
+                heroes[tokenId].defense += 3;
+            } else { // Mago
+                heroes[tokenId].attack += 6;
                 heroes[tokenId].defense += 1;
             }
         }
     }
 
-    function adminMintSpecific(address to, uint8[] calldata ids) external onlyOwner {
-        for(uint256 i = 0; i < ids.length; i++) {
-            uint8 hId = ids[i];
-            if ((userMintMask[to] & (1 << hId)) == 0) {
-                 userMintMask[to] |= (1 << hId);
-                 
-                 string[8] memory heroNames = ["Sylas", "Ignis", "Aethelgard", "Noctis", "Thalassa", "Voltz", "Krag", "Zyra"];
-                 HeroRarity[8] memory heroRarities = [HeroRarity.Mitico, HeroRarity.Mitico, HeroRarity.Legendario, HeroRarity.Legendario, HeroRarity.Epico, HeroRarity.Epico, HeroRarity.Raro, HeroRarity.Mitico];
-                 uint256[8] memory baseAtk = [uint256(15), 35, 20, 30, 25, 25, 15, 40];
-                 uint256[8] memory baseDef = [uint256(35), 15, 25, 10, 20, 15, 30,  5];
-
-                 uint256 tokenId = _nextTokenId++;
-                 heroes[tokenId] = HeroStats({name: heroNames[hId], heroType: HeroType(hId), rarity: heroRarities[hId], exp: 0, level: 1, attack: baseAtk[hId], defense: baseDef[hId], lastTrainedAt: 0});
-                 _mint(to, tokenId);
-            }
-        }
-    }
-
+    /**
+     * @dev Permite al dueno del smart contract retirar los fondos recaudados por cada mint.
+     */
     function withdrawBalance() external onlyOwner {
         uint256 balance = address(this).balance;
-        require(balance > 0, "No balance");
+        require(balance > 0, "No hay saldo para retirar");
         (bool success, ) = payable(owner()).call{value: balance}("");
-        require(success, "Withdraw failed");
+        require(success, "Fallo al retirar fondos");
     }
 
+    /**
+     * @dev Funcion para obtener las stats de un heroe y facilitar el mapeo rapido de getters en la DApp.
+     */
     function getHeroStats(uint256 tokenId) external view returns (HeroStats memory) {
-        ownerOf(tokenId);
+        ownerOf(tokenId); // Revierte automaticamente si no existe
         return heroes[tokenId];
     }
 }

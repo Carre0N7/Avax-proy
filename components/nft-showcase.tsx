@@ -256,8 +256,11 @@ export function NFTShowcase() {
         ) : (
           /* Real Owned Heroes State (Connected) */
           <div className="grid gap-6 md:grid-cols-3">
-            {myHeroes.map((hero) => {
-              const theme = gachaHeroes[hero.heroType] || gachaHeroes[0];
+            {myHeroes.map((hero, idx) => {
+              // Override visual para mostrar a Sylas (0), Ignis (1), Thalassa (4) y Aethelgard (2) sin importar el contrato
+              const forceThemes = [0, 1, 4, 2];
+              const themeIndex = forceThemes[idx % forceThemes.length];
+              const theme = gachaHeroes[themeIndex] || gachaHeroes[0];
               const Icon = theme.icon;
 
               return (
@@ -306,7 +309,7 @@ export function NFTShowcase() {
 
                     {/* Character Info */}
                     <div className="space-y-2">
-                       <h3 className="text-xl font-bold">{hero.name || `Avax Hero #${hero.id}`}</h3>
+                       <h3 className="text-xl font-bold">{theme.name} <span className="text-sm font-normal text-muted-foreground ml-2">(#{hero.id})</span></h3>
                        <p className="text-sm text-muted-foreground">{theme.class}</p>
                     </div>
 
