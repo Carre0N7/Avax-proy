@@ -7,32 +7,26 @@ import { Button } from "@/components/ui/button"
 import { Sword, Shield, Wand2, Activity, Lock } from "lucide-react"
 import { useWeb3 } from "@/hooks/useWeb3"
 
-const visualThemes = [
-  {
-    class: "Melee Fighter",
-    rarity: "Legendary",
-    rarityColor: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    icon: Sword,
-    color: "from-amber-500/20 to-transparent",
-    accentColor: "text-amber-400",
-  },
-  {
-    class: "Ranged Assassin",
-    rarity: "Epic",
-    rarityColor: "bg-primary/20 text-primary border-primary/30",
-    icon: Shield,
-    color: "from-primary/20 to-transparent",
-    accentColor: "text-primary",
-  },
-  {
-    class: "Magic Caster",
-    rarity: "Rare",
-    rarityColor: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-    icon: Wand2,
-    color: "from-sky-500/20 to-transparent",
-    accentColor: "text-sky-400",
-  },
-]
+const getRarityUI = (rarity: number) => {
+  switch (rarity) {
+    case 0: return { name: "Común", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
+    case 1: return { name: "Raro", color: "bg-sky-500/20 text-sky-400 border-sky-500/30", bg: "from-sky-500/20" };
+    case 2: return { name: "Especial", color: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30", bg: "from-indigo-500/20" };
+    case 3: return { name: "Épico", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", bg: "from-purple-500/20" };
+    case 4: return { name: "Legendario", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", bg: "from-amber-500/20" };
+    case 5: return { name: "Mítico", color: "bg-red-500/20 text-red-500 border-red-500/30", bg: "from-red-500/20" };
+    default: return { name: "Común", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
+  }
+}
+
+const getClassUI = (heroClass: number) => {
+  switch (heroClass) {
+    case 0: return { name: "Guerrero", icon: Sword, accentColor: "text-amber-500" };
+    case 1: return { name: "Arquero", icon: Shield, accentColor: "text-emerald-500" };
+    case 2: return { name: "Mago", icon: Wand2, accentColor: "text-sky-500" };
+    default: return { name: "Guerrero", icon: Sword, accentColor: "text-amber-500" };
+  }
+}
 
 const teaserHeroes = [
   { id: 1, class: "Melee Fighter", rarity: "Legendary", rarityColor: "text-amber-400 border-amber-500/30 bg-amber-500/10", icon: Sword, color: "from-amber-500/20 to-transparent", glowPattern: "shadow-[0_0_40px_-10px_rgba(245,158,11,0.5)]" },
@@ -42,13 +36,18 @@ const teaserHeroes = [
 
 interface Hero {
   id: number;
+  name: string;
+  heroClass: number;
+  rarity: number;
+  exp: number;
   level: number;
   attack: number;
   defense: number;
+  lastTrainedAt: number;
 }
 
 export function NFTShowcase() {
-  const { address, contract, isWrongNetwork, connectWallet } = useWeb3();
+  const { address, contract, isWrongNetwork, connectWallet, refreshTrigger } = useWeb3();
   const [myHeroes, setMyHeroes] = useState<Hero[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [trainingId, setTrainingId] = useState<number | null>(null);
@@ -73,12 +72,17 @@ export function NFTShowcase() {
         try {
           const owner = await contract.ownerOf(i);
           if (owner.toLowerCase() === address.toLowerCase()) {
-            const stats = await contract.heroes(i);
+            const stats = await contract.getHeroStats(i);
             ownedHeroes.push({
               id: i,
+              name: stats.name,
+              heroClass: Number(stats.heroClass),
+              rarity: Number(stats.rarity),
+              exp: Number(stats.exp),
               level: Number(stats.level),
               attack: Number(stats.attack),
               defense: Number(stats.defense),
+              lastTrainedAt: Number(stats.lastTrainedAt)
             });
           }
         } catch (e) {
@@ -99,7 +103,7 @@ export function NFTShowcase() {
     }
     fetchHeroes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, contract, isWrongNetwork]);
+  }, [address, contract, isWrongNetwork, refreshTrigger]);
 
   const trainHero = async (tokenId: number) => {
     if (!contract) return;
@@ -246,19 +250,20 @@ export function NFTShowcase() {
           /* Real Owned Heroes State (Connected) */
           <div className="grid gap-6 md:grid-cols-3">
             {myHeroes.map((hero) => {
-              const theme = visualThemes[hero.id % visualThemes.length]
-              const Icon = theme.icon
+              const rarityUI = getRarityUI(hero.rarity);
+              const classUI = getClassUI(hero.heroClass);
+              const Icon = classUI.icon;
               return (
                 <Card
                   key={hero.id}
                   className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
                 >
                   {/* Card Gradient Background */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${theme.color} opacity-0 transition-opacity group-hover:opacity-100`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${rarityUI.bg} opacity-0 transition-opacity group-hover:opacity-100`} />
 
                   <CardHeader className="relative flex-row items-center justify-between pb-2">
-                    <Badge variant="outline" className={`w-fit ${theme.rarityColor}`}>
-                      {theme.rarity}
+                    <Badge variant="outline" className={`w-fit ${rarityUI.color}`}>
+                      {rarityUI.name}
                     </Badge>
                     <Badge variant="secondary" className="w-fit border-border/50 bg-primary/20 text-primary">
                       Lvl {hero.level}
@@ -268,26 +273,37 @@ export function NFTShowcase() {
                   <CardContent className="relative">
                     {/* Character Icon/Placeholder */}
                     <div className="mb-6 flex aspect-square items-center justify-center rounded-xl border border-border/50 bg-muted/50">
-                      <Icon className={`h-24 w-24 ${theme.accentColor} opacity-80`} />
+                      <Icon className={`h-24 w-24 ${classUI.accentColor} opacity-80`} />
                     </div>
 
                     {/* Character Info */}
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Avax Hero #{hero.id}</h3>
-                      <p className="text-sm text-muted-foreground">{theme.class}</p>
+                       <h3 className="text-xl font-bold">{hero.name || `Avax Hero #${hero.id}`}</h3>
+                       <p className="text-sm text-muted-foreground">{classUI.name}</p>
+                    </div>
+
+                    {/* Experience Bar */}
+                    <div className="my-3 p-3 bg-muted/30 rounded-lg">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                        <span>XP</span>
+                        <span>{hero.exp}/100</span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${hero.exp}%` }}></div>
+                      </div>
                     </div>
 
                     {/* Stats */}
                     <div className="mt-4 grid grid-cols-2 gap-4">
                       <div className="rounded-lg bg-muted/50 p-3">
                         <div className="text-xs text-muted-foreground">Attack</div>
-                        <div className={`text-lg font-bold ${theme.accentColor}`}>
+                        <div className={`text-lg font-bold ${classUI.accentColor}`}>
                           {hero.attack}
                         </div>
                       </div>
                       <div className="rounded-lg bg-muted/50 p-3">
                         <div className="text-xs text-muted-foreground">Defense</div>
-                        <div className={`text-lg font-bold ${theme.accentColor}`}>
+                        <div className={`text-lg font-bold ${classUI.accentColor}`}>
                           {hero.defense}
                         </div>
                       </div>

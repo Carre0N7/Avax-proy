@@ -26,6 +26,8 @@ interface Web3ContextType {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   switchToFuji: () => Promise<void>;
+  refreshTrigger: number;
+  triggerRefresh: () => void;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
@@ -35,6 +37,9 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   const [provider, setProvider] = useState<BrowserProvider | JsonRpcProvider | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  const triggerRefresh = () => setRefreshTrigger((prev) => prev + 1);
 
   useEffect(() => {
     const initWeb3 = async () => {
@@ -178,7 +183,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Web3Context.Provider value={{ address, isWrongNetwork, provider, contract, connectWallet, disconnectWallet, switchToFuji }}>
+    <Web3Context.Provider value={{ address, isWrongNetwork, provider, contract, connectWallet, disconnectWallet, switchToFuji, refreshTrigger, triggerRefresh }}>
       {children}
     </Web3Context.Provider>
   );
