@@ -13,12 +13,14 @@ import { parseEther } from "ethers"
 
 
 export function HeroSection() {
-  const { contract, address, connectWallet, triggerRefresh } = useWeb3();
+  const { contract, address, connectWallet, triggerRefresh, myHeroes } = useWeb3();
   const [isMinting, setIsMinting] = useState(false);
   const [introFinished, setIntroFinished] = useState(false);
   const [isMintDialogOpen, setIsMintDialogOpen] = useState(false);
   const [heroName, setHeroName] = useState("");
   const [heroClass, setHeroClass] = useState("0");
+
+  const hasHeroes = myHeroes.length > 0;
 
   const handleMint = async () => {
     if (!address) {
@@ -105,16 +107,17 @@ export function HeroSection() {
 
         {/* Main Heading */}
         <h1 className="mb-6 text-balance text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
-          The First RPG Powered by an{" "}
+          {hasHeroes ? "Welcome Back, " : "The First RPG Powered by an "}
           <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Avalanche L1 Subnet
+            {hasHeroes ? "Commander" : "Avalanche L1 Subnet"}
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="mx-auto mb-10 max-w-2xl text-pretty text-lg text-muted-foreground md:text-xl">
-          Own your assets, rule the arena. Battle in a decentralized world with 
-          instant finality and near-zero gas fees.
+          {hasHeroes
+            ? `You currently command ${myHeroes.length} heroes in the Fuji Realm. Keep training them and prepare your troops for the upcoming wars.`
+            : "Own your assets, rule the arena. Battle in a decentralized world with instant finality and near-zero gas fees."}
         </p>
 
         {/* CTA Buttons */}
@@ -123,7 +126,7 @@ export function HeroSection() {
             <DialogTrigger asChild>
               <Button size="lg" className="gap-2 bg-primary px-8 text-lg hover:bg-primary/90">
                 <Sparkles className="h-5 w-5" />
-                Mint Your First Hero NFT
+                {hasHeroes ? "Expand Your Army" : "Mint Your First Hero NFT"}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">

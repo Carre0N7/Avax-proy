@@ -19,6 +19,18 @@ export const CONTRACT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 
+export interface Hero {
+  id: number;
+  name: string;
+  heroClass: number;
+  rarity: number;
+  exp: number;
+  level: number;
+  attack: number;
+  defense: number;
+  lastTrainedAt: number;
+}
+
 interface Web3ContextType {
   address: string | null;
   isWrongNetwork: boolean;
@@ -29,6 +41,8 @@ interface Web3ContextType {
   switchToFuji: () => Promise<void>;
   refreshTrigger: number;
   triggerRefresh: () => void;
+  myHeroes: Hero[];
+  isLoadingHeroes: boolean;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
@@ -39,8 +53,52 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [provider, setProvider] = useState<BrowserProvider | JsonRpcProvider | null>(null);
   const [contract, setContract] = useState<Contract | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [myHeroes, setMyHeroes] = useState<Hero[]>([]);
+  const [isLoadingHeroes, setIsLoadingHeroes] = useState(false);
 
   const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
+
+  const fetchHeroes = async () => {
+    if (!contract || !address || isWrongNetwork) return;
+    setIsLoadingHeroes(true);
+    try {
+      const ownedHeroes = [];
+      for (let i = 0; i < 50; i++) {
+        try {
+          const owner = await contract.ownerOf(i);
+          if (owner.toLowerCase() === address.toLowerCase()) {
+            const stats = await contract.getHeroStats(i);
+            ownedHeroes.push({
+              id: i,
+              name: stats.name,
+              heroClass: Number(stats.heroClass),
+              rarity: Number(stats.rarity),
+              exp: Number(stats.exp),
+              level: Number(stats.level),
+              attack: Number(stats.attack),
+              defense: Number(stats.defense),
+              lastTrainedAt: Number(stats.lastTrainedAt)
+            });
+          }
+        } catch (e) {
+          break;
+        }
+      }
+      setMyHeroes(ownedHeroes);
+    } catch (err) {
+      console.error("Error fetching heroes:", err);
+    }
+    setIsLoadingHeroes(false);
+  };
+
+  useEffect(() => {
+    if (!address || !contract) {
+      setMyHeroes([]);
+      return;
+    }
+    fetchHeroes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, contract, isWrongNetwork, refreshTrigger]);
 
   useEffect(() => {
     const initWeb3 = async () => {
@@ -185,7 +243,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <Web3Context.Provider value={{ address, isWrongNetwork, provider, contract, connectWallet, disconnectWallet, switchToFuji, refreshTrigger, triggerRefresh }}>
+    <Web3Context.Provider value={{ address, isWrongNetwork, provider, contract, connectWallet, disconnectWallet, switchToFuji, refreshTrigger, triggerRefresh, myHeroes, isLoadingHeroes }}>
       {children}
     </Web3Context.Provider>
   );

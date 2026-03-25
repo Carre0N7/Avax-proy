@@ -34,22 +34,8 @@ const teaserHeroes = [
   { id: 3, class: "Magic Caster", rarity: "Rare", rarityColor: "text-sky-400 border-sky-500/30 bg-sky-500/10", icon: Wand2, color: "from-sky-500/20 to-transparent", glowPattern: "shadow-[0_0_40px_-10px_rgba(14,165,233,0.5)]" },
 ]
 
-interface Hero {
-  id: number;
-  name: string;
-  heroClass: number;
-  rarity: number;
-  exp: number;
-  level: number;
-  attack: number;
-  defense: number;
-  lastTrainedAt: number;
-}
-
 export function NFTShowcase() {
-  const { address, contract, isWrongNetwork, connectWallet, refreshTrigger } = useWeb3();
-  const [myHeroes, setMyHeroes] = useState<Hero[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { address, contract, isWrongNetwork, connectWallet, myHeroes, isLoadingHeroes, triggerRefresh } = useWeb3();
   const [trainingId, setTrainingId] = useState<number | null>(null);
   
   // Teaser Carousel State
@@ -63,48 +49,6 @@ export function NFTShowcase() {
     return () => clearInterval(interval);
   }, [address]);
 
-  const fetchHeroes = async () => {
-    if (!contract || !address || isWrongNetwork) return;
-    setIsLoading(true);
-    try {
-      const ownedHeroes = [];
-      for (let i = 0; i < 50; i++) {
-        try {
-          const owner = await contract.ownerOf(i);
-          if (owner.toLowerCase() === address.toLowerCase()) {
-            const stats = await contract.getHeroStats(i);
-            ownedHeroes.push({
-              id: i,
-              name: stats.name,
-              heroClass: Number(stats.heroClass),
-              rarity: Number(stats.rarity),
-              exp: Number(stats.exp),
-              level: Number(stats.level),
-              attack: Number(stats.attack),
-              defense: Number(stats.defense),
-              lastTrainedAt: Number(stats.lastTrainedAt)
-            });
-          }
-        } catch (e) {
-          break;
-        }
-      }
-      setMyHeroes(ownedHeroes);
-    } catch (err) {
-      console.error("Error fetching heroes:", err);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    if (!address || !contract) {
-      setMyHeroes([]);
-      return;
-    }
-    fetchHeroes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, contract, isWrongNetwork, refreshTrigger]);
-
   const trainHero = async (tokenId: number) => {
     if (!contract) return;
     setTrainingId(tokenId);
@@ -112,7 +56,7 @@ export function NFTShowcase() {
       const tx = await contract.entrenarHeroe(tokenId);
       await tx.wait();
       alert("¡Héroe entrenado exitosamente! Sus stats han subido on-chain.");
-      fetchHeroes();
+      triggerRefresh();
     } catch (err) {
       console.error("Error entrenando:", err);
       alert("Hubo un error al entrenar el héroe. Puede que te falte saldo en la C-Chain o rechazaste la transacción.");
@@ -149,7 +93,7 @@ export function NFTShowcase() {
           </h2>
           {address && (
             <p className="mx-auto max-w-2xl text-muted-foreground">
-              {isLoading
+              {isLoadingHeroes
                 ? "Fetching your heroes from Fuji Testnet..."
                 : myHeroes.length === 0
                   ? "You don't own any heroes yet. Scroll up and forge your first one via the main button!"
