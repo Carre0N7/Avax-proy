@@ -9,22 +9,22 @@ import { useWeb3 } from "@/hooks/useWeb3"
 
 const getRarityUI = (rarity: number) => {
   switch (rarity) {
-    case 0: return { name: "Común", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
-    case 1: return { name: "Raro", color: "bg-sky-500/20 text-sky-400 border-sky-500/30", bg: "from-sky-500/20" };
-    case 2: return { name: "Especial", color: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30", bg: "from-indigo-500/20" };
-    case 3: return { name: "Épico", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", bg: "from-purple-500/20" };
-    case 4: return { name: "Legendario", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", bg: "from-amber-500/20" };
-    case 5: return { name: "Mítico", color: "bg-red-500/20 text-red-500 border-red-500/30", bg: "from-red-500/20" };
-    default: return { name: "Común", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
+    case 0: return { name: "Common", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
+    case 1: return { name: "Rare", color: "bg-sky-500/20 text-sky-400 border-sky-500/30", bg: "from-sky-500/20" };
+    case 2: return { name: "Special", color: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30", bg: "from-indigo-500/20" };
+    case 3: return { name: "Epic", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", bg: "from-purple-500/20" };
+    case 4: return { name: "Legendary", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", bg: "from-amber-500/20" };
+    case 5: return { name: "Mythic", color: "bg-red-500/20 text-red-500 border-red-500/30", bg: "from-red-500/20" };
+    default: return { name: "Common", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", bg: "from-slate-500/20" };
   }
 }
 
 const getClassUI = (heroClass: number) => {
   switch (heroClass) {
-    case 0: return { name: "Guerrero", icon: Sword, accentColor: "text-amber-500" };
-    case 1: return { name: "Arquero", icon: Shield, accentColor: "text-emerald-500" };
-    case 2: return { name: "Mago", icon: Wand2, accentColor: "text-sky-500" };
-    default: return { name: "Guerrero", icon: Sword, accentColor: "text-amber-500" };
+    case 0: return { name: "Warrior", icon: Sword, accentColor: "text-amber-500" };
+    case 1: return { name: "Archer", icon: Shield, accentColor: "text-emerald-500" };
+    case 2: return { name: "Mage", icon: Wand2, accentColor: "text-sky-500" };
+    default: return { name: "Warrior", icon: Sword, accentColor: "text-amber-500" };
   }
 }
 
@@ -111,11 +111,11 @@ export function NFTShowcase() {
     try {
       const tx = await contract.entrenarHeroe(tokenId);
       await tx.wait();
-      alert("¡Héroe entrenado exitosamente! Sus stats han subido on-chain.");
+      alert("Hero successfully trained! Stats upgraded on-chain.");
       fetchHeroes();
     } catch (err) {
       console.error("Error entrenando:", err);
-      alert("Hubo un error al entrenar el héroe. Puede que te falte saldo en la C-Chain o rechazaste la transacción.");
+      alert("Error training your hero. You might lack balance on the C-Chain or rejected the transaction.");
     }
     setTrainingId(null);
   };
@@ -142,18 +142,18 @@ export function NFTShowcase() {
         {/* Section Header */}
         <div className="mb-12 text-center">
           <Badge variant="outline" className="mb-4 border-primary/30 text-primary">
-            Tu Inventario
+            Your Inventory
           </Badge>
           <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-5xl">
-            Tus Héroes Coleccionados
+            Your Collected Heroes
           </h2>
           {address && (
             <p className="mx-auto max-w-2xl text-muted-foreground">
               {isLoading
-                ? "Buscando tus héroes en la Fuji Testnet..."
+                ? "Searching for your heroes on Fuji Testnet..."
                 : myHeroes.length === 0
-                  ? "Aún no tienes héroes. ¡Sube y mintea el primero mediante el botón principal!"
-                  : `¡Gran colección! Tienes ${myHeroes.length} héroes a tu nombre.`}
+                  ? "You don't have any heroes yet. Scroll up and mint your first one!"
+                  : `Great collection! You have ${myHeroes.length} heroes to your name.`}
             </p>
           )}
         </div>
@@ -242,7 +242,7 @@ export function NFTShowcase() {
             {/* Teaser CTA */}
             <div className="mt-14 relative z-30">
               <Button onClick={connectWallet} size="lg" className="h-16 px-12 text-lg font-bold uppercase tracking-[0.15em] bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_40px_-10px_rgba(220,38,38,0.7)] border border-primary/50 transition-all hover:scale-105 hover:shadow-[0_0_50px_-5px_rgba(220,38,38,0.9)]">
-                Conectar wallet para revelar tus héroes
+                Connect wallet to reveal your heroes
               </Button>
             </div>
           </div>
@@ -317,10 +317,10 @@ export function NFTShowcase() {
                       className="w-full gap-2 transition-all bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {trainingId === hero.id ? (
-                        <span className="animate-pulse">Entrenando... (Espera)</span>
+                        <span className="animate-pulse">Training... (Wait)</span>
                       ) : (
                         <>
-                          Entrenar Héroe (+Stats)
+                          Train Hero (+Stats)
                           <Activity className="h-4 w-4" />
                         </>
                       )}
